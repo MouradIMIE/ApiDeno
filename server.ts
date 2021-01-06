@@ -1,5 +1,6 @@
 // import * as expressive from "https://raw.githubusercontent.com/NMathar/deno-express/master/mod.ts";
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { UserModels } from "./Models/UserModel.ts";
 import { login } from "./routes/routes.ts";
 
 
@@ -27,4 +28,8 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 app.listen({port: 8080});
 
+let userTest = new UserModels ('yani','yani','yani','yani','1993-12-20')
+  userTest.insert()
+  console.log(userTest)
+  
 console.log("Server is up and running");
