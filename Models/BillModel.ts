@@ -1,9 +1,11 @@
-import { BillDatabase } from "../database/BillDatabase";
-import BillInterface from "../interfaces/BillInterface";
+import { BillDatabase } from "../database/BillDatabase.ts";
+import BillInterface from "../interfaces/BillInterface.ts";
 
 export class BillModel extends BillDatabase implements BillInterface{
-    _id: string;
-    _id_Stripe: string;
+    
+    _id: { $oid: string } | null = null;
+    _id_Stripe: { $oid: string } | null =null;
+
     date_payment: Date;
     montant_ht: string;
     montant_ttc: string;
