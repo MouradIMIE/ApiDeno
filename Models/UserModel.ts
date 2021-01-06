@@ -50,6 +50,7 @@ export class UserModels extends UserDB implements UserInterfaces {
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
+            password:this.password,
             email: this.email,
             birthDate: this.birthDate,
         });

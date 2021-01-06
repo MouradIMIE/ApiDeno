@@ -6,7 +6,7 @@ export class UserDB{
 
     userdb: any;
     constructor(){
-      this.userdb = db.collection<UserInterfaces>("users");   
+      this.userdb = db.collection< UserInterfaces >("users");   
     }
     insert(): Promise < any > {
         throw new Error('Method not implemented.');
