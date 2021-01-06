@@ -18,6 +18,7 @@ export class BillModel extends BillDatabase implements BillInterface{
         this.montant_ttc = montant_ttc;
         this.source = source;
     }
+    // a faire au moment de la réalisation de la route des factures
     insert(): Promise<void> {
         throw new Error("Method not implemented.");
     }
