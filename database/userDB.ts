@@ -1,4 +1,4 @@
-import  db  from './database.ts';
+import  {db}  from './database.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
 
