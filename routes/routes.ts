@@ -1,5 +1,5 @@
 import { RouterContext } from "https://deno.land/x/oak/mod.ts";
-import db from '../database/database.ts'
+import {db} from '../database/database.ts'
 
 // const denoApiCollection = db.collection('API_DENO');
 
