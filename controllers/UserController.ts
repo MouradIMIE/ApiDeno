@@ -51,8 +51,6 @@ export class UserController {
     
         
     }
-    }
-
 
     static register = async(req: Request, res: Response) => {
 

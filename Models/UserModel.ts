@@ -1,10 +1,10 @@
-import { UserDB } from '../database/userDB.ts';
+import { UserDatabase } from '../database/UserDatabase.ts';
 import  {roleTypes }  from '../types/roleTypes.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
 
-export class UserModels extends UserDB implements UserInterfaces {
+export class UserModels extends UserDatabase implements UserInterfaces {
 
     private _role: roleTypes = "Tutor";
     private subscription: number = 0 ;
