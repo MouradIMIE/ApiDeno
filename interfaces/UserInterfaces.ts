@@ -8,9 +8,13 @@ export default interface UserInterfaces {
 
     firstname: string;
     lastname: string;
+    sexe:string;
     email: string;
     password: string;
     birthDate: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    subcription: number;
     role: roleTypes;
 
     fullName(): string;

@@ -1,28 +1,36 @@
-import { UserDatabase } from '../database/UserDatabase.ts';
+import { UserDB } from '../database/userDB.ts';
 import  {roleTypes }  from '../types/roleTypes.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
 
-export class UserModels extends UserDatabase implements UserInterfaces {
+export class UserModels extends UserDB implements UserInterfaces {
 
     private _role: roleTypes = "Tutor";
+    private subscription: number = 0 ;
     private id:{ $oid: string }|null = null;
 
     firstname: string;
     lastname: string;
+    sexe: string;
     email: string;
     password: string;
     birthDate: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    userdb: any;
 
-    constructor(nom: string, prenom: string, email: string, password: string, birthDate: string) {
+    constructor(nom: string, prenom: string, sexe: string, email: string, password: string, birthDate: string) {
         super();
         
         this.firstname = prenom;
         this.lastname = nom;
+        this.sexe = sexe
         this.email = email;
         this.password = password;
         this.birthDate = new Date(birthDate);
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
 
     }
 
@@ -33,11 +41,20 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     get role():roleTypes{
         return this._role;
     }
-
+    get subcription():number|0{
+        return this.subscription;
+    }
+    
     setRole(role: roleTypes): void {
         this._role = role;
         this.update({role: role});
     }
+    setSubcription(subscription: number): void {
+        this.subscription = subscription;
+        this.update({subscription: subscription});
+    }
+    
+    
     fullName(): string {
         return `${this.lastname} ${this.firstname}`;
     }
@@ -50,9 +67,13 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
+            sexe: this.sexe,
             password:this.password,
             email: this.email,
             birthDate: this.birthDate,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            subscription: this.subscription,
         });
     }
     async update(update: userUpdateType): Promise < any > {
