@@ -1,9 +1,13 @@
-import { RouterContext } from "https://deno.land/x/oak/mod.ts";
-import {db} from '../database/database.ts'
+import { opine } from "https://deno.land/x/opine@1.0.2/mod.ts";
+import { UserRoutes } from "./UserRoutes.ts";
+import { SongRoutes } from "./SongRoutes.ts";
+import { BillRoutes } from './BillRoutes.ts';
 
-// const denoApiCollection = db.collection('API_DENO');
 
-const login = (ctx : RouterContext) =>{
-    ctx.response.body = 'Login successfuly';
-}
-export {login};
+const route = opine();
+
+route.use('/', UserRoutes);
+route.use('/songs', SongRoutes);
+route.use('/bills', BillRoutes);
+
+export { route as Route };
