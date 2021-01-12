@@ -1,5 +1,8 @@
 import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
 import * as jwt from '../helpers/jwt.helpers.ts';
+import {UserModels} from "../Models/UserModel.ts"
+
+
 
 export class UserController {
 
@@ -7,7 +10,7 @@ export class UserController {
     static login = async(req: Request, res: Response) => {
 
         let data: any = req.body;
-        let user = data
+        let user = new UserModels('yani', 'yani', 'yani', 'yani', 'yani', "1993-11-22");
         
         try {
             const token = {
@@ -27,7 +30,7 @@ export class UserController {
                     "role": user.role, 
                     "dateNaissance": user.birthDate, 
                     "createdAt": user.createdAt, 
-                    "updateAt": user.updateAt, 
+                    "updateAt": user.updatedAt, 
                     "subscription" : user.subscription 
                 }, 
                 "token": token }
@@ -35,7 +38,7 @@ export class UserController {
             }else if (data.email != user.email && data.password != user.password){
                 res.status = 400
                 return res.json({ error: true, message: "Email/password incorrect" });
-            }else if(data.email == null && data.password == null ){
+            }else if(data.email == null || data.password == null ){
                 res.status = 400
                 return res.json({ error: true, message: "Email/password manquants" });
                
@@ -48,7 +51,6 @@ export class UserController {
             res.status = 401;
             return res.json({ error: true, message: err.message });
         }
-    
         
     }
 

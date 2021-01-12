@@ -7,7 +7,6 @@ import { userUpdateType } from "../types/userUpdateType.ts";
 export class UserModels extends UserDatabase implements UserInterfaces {
 
     private _role: roleTypes = "Tutor";
-    private subscription: number = 0 ;
     private id:{ $oid: string }|null = null;
 
     firstname: string;
@@ -18,6 +17,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     birthDate: Date;
     createdAt: Date;
     updatedAt: Date;
+    subscription: number = 0;
     userdb: any;
 
     constructor(nom: string, prenom: string, sexe: string, email: string, password: string, birthDate: string) {
@@ -41,7 +41,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     get role():roleTypes{
         return this._role;
     }
-    get subcription():number|0{
+    get subcription():number{
         return this.subscription;
     }
     
