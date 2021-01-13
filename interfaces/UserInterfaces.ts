@@ -1,4 +1,5 @@
 import { roleTypes } from '../types/roleTypes.ts';
+import { sexeTypes } from '../types/sexeTypes';
 import { userUpdateType } from "../types/userUpdateType.ts";
 
 export default interface UserInterfaces {
@@ -8,7 +9,7 @@ export default interface UserInterfaces {
 
     firstname: string;
     lastname: string;
-    sexe:string;
+    sexe:sexeTypes;
     email: string;
     password: string;
     birthDate: Date;
@@ -16,6 +17,8 @@ export default interface UserInterfaces {
     updatedAt: Date;
     subcription: number;
     role: roleTypes;
+    lastLogin: Date;
+    attempt: number;
 
     fullName(): string;
     getEmail(): string;

@@ -3,6 +3,7 @@ import  {roleTypes }  from '../types/roleTypes.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { hash } from '../helpers/password.helpers.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
+import { sexeTypes } from '../types/sexeTypes';
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
@@ -11,26 +12,31 @@ export class UserModels extends UserDatabase implements UserInterfaces {
 
     firstname: string;
     lastname: string;
-    sexe: string;
+    sexe: sexeTypes;
     email: string;
     password: string;
     birthDate: Date;
     createdAt: Date;
     updatedAt: Date;
-    subscription: number = 0;
+    subscription: number;
+    lastLogin: Date;
+    attempt: number;
     userdb: any;
 
-    constructor(nom: string, prenom: string, sexe: string, email: string, password: string, birthDate: string) {
+    constructor(nom: string, prenom: string, sexe: sexeTypes, email: string, password: string, birthDate: string) {
         super();
         
         this.firstname = prenom;
         this.lastname = nom;
-        this.sexe = sexe
+        this.sexe = sexe;
         this.email = email;
         this.password = password;
         this.birthDate = new Date(birthDate);
         this.createdAt = new Date();
         this.updatedAt = new Date();
+        this.lastLogin = new Date();
+        this.attempt = 0;
+        this.subscription = 0;
 
     }
 
@@ -49,19 +55,22 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this._role = role;
         this.update({role: role});
     }
-    setSubcription(subscription: number): void {
+   /* setSubcription(subscription: number): void {
         this.subscription = subscription;
         this.update({subscription: subscription});
     }
-    
     
     fullName(): string {
         return `${this.lastname} ${this.firstname}`;
     }
     getEmail(): string {
         return ` ${this.email}`;
-    }
+    }*/
     async insert(): Promise<void> {
+        const used = this.userdb.findOne({
+            email: this.email
+        });
+        if(used)throw new Error ("Un compte utilisant cette adresse mail est déjà enregistré");
         this.password = await hash(this.password);
         this.id = await this.userdb.insertOne({
             role: this._role,
@@ -73,6 +82,8 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             birthDate: this.birthDate,
             createdAt: new Date(),
             updatedAt: new Date(),
+            lastLogin: new Date(),
+            attempt: this.attempt,
             subscription: this.subscription,
         });
     }

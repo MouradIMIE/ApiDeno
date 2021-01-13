@@ -9,9 +9,9 @@ export class UserController {
 
     static login = async(req: Request, res: Response) => {
 
-        let data: any = req.body;
-        let user = new UserModels('yani', 'yani', 'yani', 'yani', 'yani', "1993-11-22");
-        
+        let data = req.body;
+        let user = new UserModels('yani', 'yani','yani', 'yani', 'yani', "1993-11-22");
+        console.log(JSON.stringify(data))
         try {
             const token = {
                 "access_token": jwt.getAuthToken(user),
@@ -35,18 +35,18 @@ export class UserController {
                 }, 
                 "token": token }
                 );
-            }else if (data.email != user.email && data.password != user.password){
+            }else if ((data.email != user.email || data.password != user.password) || (data.email != user.email && data.password != user.password)){
                 res.status = 400
-                return res.json({ error: true, message: "Email/password incorrect" });
-            }else if(data.email == null || data.password == null ){
+                return res.json({ error: true, message: "Email/password incorrect" ,mdp : data.password ,email : data.email});
+            }else if(!data.email || !data.password){
                 res.status = 400
                 return res.json({ error: true, message: "Email/password manquants" });
                
-            }else if(data.email == null && data.password == null ){
+            }/*else if(data.email == null && data.password == null ){
                 res.status = 429
                 return res.json({ error: true, message: "Trop de tentative sur l'email xxxxx (5 max) - Veuillez patienter (2min)" });
                
-            }
+            }*/
         } catch (err) {
             res.status = 401;
             return res.json({ error: true, message: err.message });
