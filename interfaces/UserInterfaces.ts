@@ -1,5 +1,5 @@
 import { roleTypes } from '../types/roleTypes.ts';
-import { sexeTypes } from '../types/sexeTypes';
+import { sexeTypes } from '../types/sexeTypes.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
 
 export default interface UserInterfaces {
@@ -15,13 +15,13 @@ export default interface UserInterfaces {
     birthDate: Date;
     createdAt: Date;
     updatedAt: Date;
-    subcription: number;
+    subscription: number;
     role: roleTypes;
     lastLogin: Date;
     attempt: number;
 
-    fullName(): string;
-    getEmail(): string;
+  /*fullName(): string;
+    getEmail(): string;*/
     insert(): Promise<void> ;
     update(update: userUpdateType): Promise < any > ;
     delete(): Promise < any > ;

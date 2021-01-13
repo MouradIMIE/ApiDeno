@@ -1,5 +1,5 @@
 import BillInterface from "../interfaces/BillInterface.ts";
-import db from "./database.ts"
+import {db} from "./database.ts"
 
 export class BillDatabase{
     
