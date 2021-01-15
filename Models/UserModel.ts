@@ -90,10 +90,10 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         });
     }
 
-    static async login(email :string, password:string): Promise < UserInterfaces >{
+    static async login(email :string, password:string): Promise < any >{
 
         // Créer un user qui vérifie la présence de cet email dans la db 
-        const verifyUser: UserInterfaces  = await this.userdb.findOne({email:email})
+        const verifyUser: undefined |UserInterfaces  = await this.userdb.findOne({email:email})
 
         //Si aucun utilisateur a ce mail ça fait une erreur 
         if (!verifyUser) {
@@ -101,21 +101,24 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         }   
 
         //Vérifier le nbr de co et le temps depuis la last co
-        if(((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) >= 2 && verifyUser.attempt >= 5 ){
+        if(verifyUser!=undefined &&((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) >= 2 && verifyUser.attempt >= 5 ){
             // Si l'user à attendu 2 minutes depuis sa last connection, on remet à 0
             verifyUser.attempt = 0; 
             verifyUser.lastLogin = new Date();
             this.userdb.updateOne({id:verifyUser._id},verifyUser);
         }
         // On vérifie le nbr de co et le temps depuis la last co
-        if(((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) <= 2 && verifyUser.attempt >= 5 ){
+        if(verifyUser!=undefined &&((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) <= 2 && verifyUser.attempt >= 5 ){
             new Error ("Trop de tentative sur l'email"+verifyUser.email+  "(5 max) - Veuillez patienter (2min)")
         }
         // Si user a respecté 2 min on remet tout à 0
-        verifyUser.lastLogin = new Date();
-        verifyUser.attempt = 0;
-        this.userdb.updateOne({id:verifyUser._id},verifyUser);
-
+        else if(verifyUser!=undefined){
+            verifyUser.lastLogin = new Date();
+            verifyUser.attempt = 0;
+            this.userdb.updateOne({id:verifyUser._id},verifyUser);
+    
+            
+        }
         return verifyUser;
     }
 
