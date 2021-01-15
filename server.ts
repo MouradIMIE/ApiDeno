@@ -1,11 +1,24 @@
-import { opine , urlencoded  } from "https://deno.land/x/opine@1.0.2/mod.ts";
+import { opine, json, urlencoded } from "https://deno.land/x/opine@1.0.2/mod.ts";
 import { Route } from "./routes/Routes.ts";
-import { getAuthToken, getRefreshToken, getJwtPayload }  from './helpers/jwt.helpers.ts';
+import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
 
+const __dirname = new URL('.', import.meta.url).pathname;
 
 const app = opine();
-app.use(Route , urlencoded());
+app.use(json());
+app.use(urlencoded());
+
+app.get('/', (req: Request, res: Response)=> {
+    res.sendFile( __dirname.substring(1) + '/public/index.html');
+});
+
+
+app.get('*', (req: Request, res: Response)=> {
+    res.sendFile(__dirname.substring(1) + '/public/error.html');
+});
+
+app.use(Route);
 app.listen({port: 8080});
 
-
+  
 console.log("Server is up and running");
