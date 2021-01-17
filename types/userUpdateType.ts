@@ -7,6 +7,9 @@ export type  userUpdateType = {
     email?: string;
     password?: string;
     birthDate?: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
+    subscription?: number;
     role?: roleTypes;
 }
 
