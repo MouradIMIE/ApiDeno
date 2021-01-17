@@ -108,6 +108,23 @@ export class UserModels extends UserDatabase implements UserInterfaces {
 
         return verifyUser;
     }
+    static async logout(email :string, password:string): Promise < UserInterfaces >{
+        
+        const verifyUser: UserInterfaces | undefined   = await this.userdb.findOne({email:email});
+
+        if (!verifyUser) throw new Error("Email/password incorrect") 
+
+        const comparePasswords = await comparePass(password,verifyUser.password)
+        if (!comparePasswords){
+            verifyUser.lastLogin = new Date();
+            this.userdb.updateOne({_id:verifyUser._id},verifyUser);
+            throw new Error ('Email/password incorrect');
+        }
+        verifyUser.lastLogin = new Date();
+        this.userdb.updateOne({_id:verifyUser._id},verifyUser);
+
+        return verifyUser;
+    }
 
     async update(update: userUpdateType): Promise < any > {
         const { modifiedCount, upsertedId } = await this.userdb.updateOne(

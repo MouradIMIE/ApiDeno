@@ -132,7 +132,24 @@ export class UserController {
     }
     
     static logout = async(req: Request, res: Response) => {
-    
+        try{
+            const {email, password} = req.body;
+            const user = await UserModels.logout(email,password);
+
+            const token = {
+                "access_token": jwt.getAuthToken(user),
+                "refresh_token": jwt.getRefreshToken(user),
+            }
+            res.status = 200
+            return res.json(
+                { error: false, message: "L'utilisateur a été déconnecté avec succès" }
+            )
+
+        }catch(error){
+                res.status = 401;
+                res.json({ error: true, message: "Votre token n'est pas correct" });
+            
+            }
     }
      
     static userdb: any;
