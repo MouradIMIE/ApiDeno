@@ -20,6 +20,9 @@ export default interface UserInterfaces {
     lastLogin: Date;
     attempt: number;
 
+    token: string;
+    refreshToken: string;
+    
   /*fullName(): string;
     getEmail(): string;*/
     insert(): Promise<void> ;
