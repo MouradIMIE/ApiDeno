@@ -16,7 +16,7 @@ const header: any = {
 const getAuthToken = async (user: any) => {
     const payload: any = {
         iss: "deno-imie-api",
-        id: user.id,
+        id: user._id, // ObjectId
         email: user.email,
         roles: user.role,
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_ACCESS_TOKEN_EXP)),
@@ -28,7 +28,7 @@ const getAuthToken = async (user: any) => {
 const getRefreshToken = async(user: any) => {
     const payload: any = {
         iss: "deno-imie-api",
-        id: user.id,
+        id: user._id,
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_REFRESH_TOKEN_EXP)),
     };
 
@@ -38,8 +38,8 @@ const getRefreshToken = async(user: any) => {
 const getJwtPayload = async(token: string): Promise < any | null > => {
     try {
         const jwtObject = await verify(token, JWT_TOKEN_SECRET, header.alg);
-        if (jwtObject && jwtObject.payload) {
-            return jwtObject.payload;
+        if (jwtObject) {
+            return jwtObject;
         }
     } catch (err) {}
     return null;
