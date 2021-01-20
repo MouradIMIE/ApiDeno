@@ -1,6 +1,7 @@
-export default class PasswordException extends Error {
-    constructor(message:string) {
-        super(message)
+export default class EmailException extends Error {
+
+    constructor() {
+        super('Email is not valid')
     }
 
 }

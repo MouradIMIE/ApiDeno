@@ -1,6 +1,9 @@
 import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
 import * as jwt from '../helpers/jwt.helpers.ts';
+import { ServerRequest } from "https://deno.land/std@0.83.0/http/server.ts";
+import { getCookies } from "https://deno.land/std@0.83.0/http/cookie.ts";
 import { UserModels } from "../Models/UserModel.ts";
+
 
 
 
@@ -17,8 +20,8 @@ export class UserController {
             const user = await UserModels.login(email,password);
     
             const token = {
-                "access_token": jwt.getAuthToken(user),
-                "refresh_token": jwt.getRefreshToken(user),
+                "access_token": await jwt.getAuthToken(user),
+                "refresh_token": await jwt.getRefreshToken(user),
             }
             res.status = 200
             return res.json(
@@ -132,23 +135,26 @@ export class UserController {
     }
     
     static logout = async(req: Request, res: Response) => {
-        try{
-            const {email, password} = req.body;
-            const user = await UserModels.logout(email,password);
+        try{ 
+            /*const split = (token: string) => { return token.split('Bearer ').join('') }
+            
+            const header = req.headers.append('"Authorization" :', `"Bearer ${token}"`);
+            
+            console.log(token + "-----" + header)*/
+            const user = UserModels;
+            const token = await jwt.getAuthToken(user);
 
-            const token = {
-                "access_token": jwt.getAuthToken(user),
-                "refresh_token": jwt.getRefreshToken(user),
-            }
+            if (token){
             res.status = 200
             return res.json(
                 { error: false, message: "L'utilisateur a été déconnecté avec succès" }
             )
-
+            }
         }catch(error){
+
                 res.status = 401;
                 res.json({ error: true, message: "Votre token n'est pas correct" });
-            
+                
             }
     }
      
