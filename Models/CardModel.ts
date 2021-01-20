@@ -28,9 +28,7 @@ export class CardModel extends CardDatabase implements CardInterface{
     }
     async insert(): Promise<void> {
         const used = await this.CardDB.findOne({
-            cartNumber: this.cartNumber,
-            month: this.month,
-            year: this.year
+            id : this._id
         });
         if(used)throw new Error ("La carte existe déjà");
         this.cartNumber = await hash(this.cartNumber);
