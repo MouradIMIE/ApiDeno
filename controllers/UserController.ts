@@ -1,9 +1,16 @@
 import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
 import * as jwt from '../helpers/jwt.helpers.ts';
 import { UserModels } from "../Models/UserModel.ts";
+import { getJwtPayload } from "../helpers/jwt.helpers.ts";
+import EmailException from "../exceptions/EmailException.ts"
+import PasswordException from "../exceptions/PasswordException.ts";
+import DateException from "../exceptions/DateException.ts";
+import UserInterfaces from "../interfaces/UserInterfaces.ts";
+import { request } from "https://deno.land/x/opine@1.0.2/src/request.ts";
 
 
 
+let Token : any;
 export class UserController {
 
 
@@ -17,9 +24,10 @@ export class UserController {
             const user = await UserModels.login(email,password);
     
             const token = {
-                "access_token": jwt.getAuthToken(user),
-                "refresh_token": jwt.getRefreshToken(user),
+                "access_token": await jwt.getAuthToken(user),
+                "refresh_token": await jwt.getRefreshToken(user),
             }
+            Token = token;
             res.status = 200
             return res.json(
                 { error: false,
@@ -62,6 +70,9 @@ export class UserController {
 
             if(!firstname||!lastname||!email||!password||!birthDate||!sexe) throw new Error('Une ou plusieurs données obligatoire sont manquantes');
             
+            if(!EmailException.checkEmail(email)||!PasswordException.isValidPassword(password)) throw new Error('Une ou plusieurs données sont erronées');
+            if (!DateException.checkDate(birthDate)) throw new DateException('Une ou plusieurs données sont erronées');
+
             const user = new UserModels(firstname,lastname,sexe,email,password,birthDate);
             await user.insert();
             
@@ -91,6 +102,10 @@ export class UserController {
                 res.status = 409;
                 res.json({error: true, message: error.message});
             }
+            if(error.message ==='Une ou plusieurs données sont erronées'){
+                res.status = 409;
+                res.json({error:true, message: error.message});
+            }
             if(error.message ==='Email/password incorrect'){
                 res.status = 400;
                 res.json({error: true, message: error.message});
@@ -106,7 +121,46 @@ export class UserController {
     
     
     static editUser = async(req: Request, res: Response) => {
-        
+        try{
+            const {firstname,lastname,email,birthDate,sexe} = req.body;
+            if (!EmailException.checkEmail(email)) throw new EmailException('Une ou plusieurs données sont erronées');
+            if (!DateException.checkDate(birthDate)) throw new DateException('Une ou plusieurs données sont erronées');
+            if (sexe!== 'Male' && sexe !=='Female') throw new Error('Une ou plusieurs données sont erronées'); 
+
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+            console.log(user);
+
+            if(user){
+                user.firstname = firstname;
+                user.lastname = lastname;
+                user.email = email;
+                user.birthDate = birthDate;
+                user.sexe = sexe;
+                user.updatedAt = new Date();
+                console.log(user);
+                await UserModels.userdb.updateOne({_id: user._id}, user);
+            }
+            if(user)
+            res.status = 200
+            return res.json({
+                error : false,
+                message : "Vos données ont été mises à jour",
+            });
+        }
+        catch(error){
+            if (error.message === 'Une ou plusieurs données sont erronées'){
+                res.status = 409;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
     }
     
     static deleteUser = async(req: Request, res: Response) => {

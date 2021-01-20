@@ -109,13 +109,6 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         return verifyUser;
     }
 
-    async update(update: userUpdateType): Promise < any > {
-        const { modifiedCount, upsertedId } = await this.userdb.updateOne(
-            { _id:  this.id },
-            { $set: update }
-          );
-          
-    }
     delete(): Promise < any > {
         throw new Error('Method not implemented.');
     }
