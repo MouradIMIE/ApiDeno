@@ -7,6 +7,8 @@ import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
 import { request } from "https://deno.land/x/opine@1.0.2/src/request.ts";
+import { CardModel } from "../Models/CardModel.ts";
+import CardException from "../exceptions/CardException.ts";
 
 
 
@@ -182,6 +184,41 @@ export class UserController {
 
     
     static addCart = async(req: Request, res: Response) => {
+        try{
+            const{holderName , cartNumber, month , year, ccv } = req.body;
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+
+            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
+            if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+            
+            const card = new CardModel(holderName , cartNumber, month , year, ccv);
+            await card.insert();
+        }catch(error){
+            if (error.message === "Votre token n'est pas correct"){ // a faire
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === 'Informations bancaire incorrectes'){
+                res.status = 409;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === "La carte existe déjà"){
+                res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){ 
+                res.status = 403;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === 'Une ou plusieurs données sont erronées'){ // a faire
+                res.status = 409;
+                res.json({error: true, message: error.message});
+            }
+        }
         
     }
     
