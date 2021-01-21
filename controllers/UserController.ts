@@ -186,28 +186,41 @@ export class UserController {
     static addCart = async(req: Request, res: Response) => {
         try{
             const{holderName , cartNumber, month , year, ccv } = req.body;
+
+            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
+            if(!CardException.isValidMonth(month) && month >= 31 && year <= 1) throw new Error ("Une ou plusieurs données sont erronées");
+            if(!CardException.isValidYear(year) && year >= 99 && year <= 21) throw new Error ("Une ou plusieurs données sont erronées");
+
             const getReqUser: any = req;
             const payload : UserInterfaces = getReqUser.user;
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
 
-            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
             if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
-            
+
             const card = new CardModel(holderName , cartNumber, month , year, ccv);
             await card.insert();
+            if(card){
+                res.status = 200;
+                res.json({ error: false, message: "Vos données ont été mises à jour" });
+            }
+
         }catch(error){
-            if (error.message === "Votre token n'est pas correct"){ // a faire
+            if (error.message === "Votre token n'est pas correct"){ 
                 res.status = 401;
                 res.json({error: true, message : error.message});
             }
             if (error.message === 'Informations bancaire incorrectes'){
-                res.status = 409;
+                res.status = 402;
                 res.json({error: true, message: error.message});
             }
             if (error.message === "La carte existe déjà"){
                 res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message ===  "Veuillez compléter votre profil avec une carte de crédit"){
+                res.status = 403;
                 res.json({error: true, message : error.message});
             }
             if (error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){ 

@@ -13,7 +13,7 @@ route.delete('/user/off', UserController.logout);
 route.post('/user/child', UserController.createChild);
 route.get('/user/childs', UserController.getChilds);
 route.delete('/user/child', UserController.deleteChild);
-route.put('/user/cart', UserController.addCart);
+route.put('/user/cart',AuthMiddlewares, UserController.addCart);
 route.delete('/user', UserController.deleteUser);
 
 export { route as UserRoutes };
