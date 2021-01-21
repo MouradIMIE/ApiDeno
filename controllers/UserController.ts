@@ -1,18 +1,18 @@
 import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
-import * as jwt from '../helpers/jwt.helpers.ts';
 import { UserModels } from "../Models/UserModel.ts";
-import { getJwtPayload } from "../helpers/jwt.helpers.ts";
 import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
+<<<<<<< HEAD
 import { request } from "https://deno.land/x/opine@1.0.2/src/request.ts";
 import { CardModel } from "../Models/CardModel.ts";
 import CardException from "../exceptions/CardException.ts";
+=======
+import { sendMailInscription } from "../helpers/mails.helpers.ts";
+>>>>>>> d278d396264503fd891cd105a139d43995190824
 
 
-
-let Token : any;
 export class UserController {
 
 
@@ -25,11 +25,7 @@ export class UserController {
 
             const user = await UserModels.login(email,password);
     
-            const token = {
-                "access_token": await jwt.getAuthToken(user),
-                "refresh_token": await jwt.getRefreshToken(user),
-            }
-            Token = token;
+            const token = await UserModels.AuthTokenGenerator(user) 
             res.status = 200
             return res.json(
                 { error: false,
@@ -77,6 +73,7 @@ export class UserController {
 
             const user = new UserModels(firstname,lastname,sexe,email,password,birthDate);
             await user.insert();
+            await sendMailInscription(user.email);
             
             res.status = 200
             return res.json({
@@ -134,7 +131,6 @@ export class UserController {
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
-            console.log(user);
 
             if(user){
                 user.firstname = firstname;
@@ -143,7 +139,6 @@ export class UserController {
                 user.birthDate = birthDate;
                 user.sexe = sexe;
                 user.updatedAt = new Date();
-                console.log(user);
                 await UserModels.userdb.updateOne({_id: user._id}, user);
             }
             if(user)
