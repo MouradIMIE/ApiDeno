@@ -1,15 +1,12 @@
 import { Request, Response } from "https://deno.land/x/opine@1.0.2/src/types.ts";
-import * as jwt from '../helpers/jwt.helpers.ts';
 import { UserModels } from "../Models/UserModel.ts";
-import { getJwtPayload } from "../helpers/jwt.helpers.ts";
 import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
+import { sendMailInscription } from "../helpers/mails.helpers.ts";
 
 
-
-let Token : any;
 export class UserController {
 
 
@@ -22,11 +19,7 @@ export class UserController {
 
             const user = await UserModels.login(email,password);
     
-            const token = {
-                "access_token": await jwt.getAuthToken(user),
-                "refresh_token": await jwt.getRefreshToken(user),
-            }
-            Token = token.access_token;
+            const token = await UserModels.AuthTokenGenerator(user) 
             res.status = 200
             return res.json(
                 { error: false,
@@ -74,6 +67,7 @@ export class UserController {
 
             const user = new UserModels(firstname,lastname,sexe,email,password,birthDate);
             await user.insert();
+            await sendMailInscription(user.email);
             
             res.status = 200
             return res.json({
@@ -131,7 +125,6 @@ export class UserController {
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
-            console.log(user);
 
             if(user){
                 user.firstname = firstname;
@@ -140,7 +133,6 @@ export class UserController {
                 user.birthDate = birthDate;
                 user.sexe = sexe;
                 user.updatedAt = new Date();
-                console.log(user);
                 await UserModels.userdb.updateOne({_id: user._id}, user);
             }
             if(user)
@@ -185,22 +177,29 @@ export class UserController {
     }
     
     static logout = async(req: Request, res: Response) => {
-        try{ 
-            const split = (token: string) => { return token.split('Bearer ').join('') }
-            const header = req.headers.get('authorization')
-            console.log(Token + '--------' + header)
-            
-            if (header === Token ){
-            res.status = 200
-            return res.json(
-                { error: false, message: "L'utilisateur a été déconnecté avec succès" }
-            )
+        try{
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+            if(user){
+            user.token = "";
+            user.refreshToken = "";
+            await UserModels.userdb.updateOne({_id : user._id}, user);
             }
+            if(user){
+                res.status = 200;
+                return res.json({ error: false, message: "L'utilisateur a été déconnecté avec succès" });
+            }
+            
+            
         }catch(error){
-            if (error.message === "Votre token n'est pas correct"){
+            if(error.message === "Votre token n'est pas correct" ){
                 res.status = 401;
                 res.json({error: true, message : error.message});
-            }        
+            }
+
         }
     }
      

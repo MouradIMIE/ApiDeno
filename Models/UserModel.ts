@@ -2,10 +2,9 @@ import { UserDatabase } from '../database/UserDatabase.ts';
 import  {roleTypes }  from '../types/roleTypes.ts';
 import UserInterfaces from '../interfaces/UserInterfaces.ts';
 import { comparePass, hash } from '../helpers/password.helpers.ts';
-import { userUpdateType } from "../types/userUpdateType.ts";
 import { sexeTypes } from '../types/sexeTypes.ts';
 import {db} from '../database/database.ts'
-import { compare } from "https://deno.land/x/bcrypt@v0.2.4/src/main.ts";
+import { getAuthToken, getRefreshToken } from "../helpers/jwt.helpers.ts";
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
@@ -26,6 +25,9 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     userdb: any;
     static userdb = db.collection <UserInterfaces> ("users");
 
+    token: string;
+    refreshToken: string;
+
     constructor(nom: string, prenom: string, sexe: sexeTypes, email: string, password: string, birthDate: Date) {
         super();
         
@@ -40,6 +42,8 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.lastLogin = new Date();
         this.attempt = 0;
         this.subscription = 0;
+        this.token = '';
+        this.refreshToken = '';
 
     }
 
@@ -78,6 +82,8 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             lastLogin: new Date(),
             attempt: 0,
             subscription: this.subscription,
+            token: this.token,
+            refreshToken: this.refreshToken,
         });
     }
 
@@ -90,7 +96,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         if(((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) >= 2 && verifyUser.attempt >= 5 ){
             verifyUser.attempt = 0; 
             verifyUser.lastLogin = new Date();
-            this.userdb.updateOne({_id:verifyUser._id},verifyUser);
+            await this.userdb.updateOne({_id:verifyUser._id},verifyUser);
         }
         if(((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) <= 2 && verifyUser.attempt >= 5 )
            throw new Error ("Trop de tentative sur l'email "+verifyUser.email+  "(5 max) - Veuillez patienter (2min)")
@@ -99,23 +105,23 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         if (!comparePasswords){
             verifyUser.lastLogin = new Date();
             verifyUser.attempt +=1;
-            this.userdb.updateOne({_id:verifyUser._id},verifyUser);
+            await this.userdb.updateOne({_id:verifyUser._id},verifyUser);
             throw new Error ('Email/password incorrect');
         }
         verifyUser.lastLogin = new Date();
         verifyUser.attempt = 0;
-        this.userdb.updateOne({_id:verifyUser._id},verifyUser);
+        await this.userdb.updateOne({_id:verifyUser._id},verifyUser);
 
         return verifyUser;
     }
 
-    async update(update: userUpdateType): Promise < any > {
-        const { modifiedCount, upsertedId } = await this.userdb.updateOne(
-            { _id:  this.id },
-            { $set: update }
-          );
-          
+    static async AuthTokenGenerator(user: UserInterfaces): Promise <string | void> {
+        user.token = await getAuthToken(user);
+        user.refreshToken = await getRefreshToken(user);
+        await this.userdb.updateOne({_id: user._id}, user);
+        return user.token;
     }
+
     delete(): Promise < any > {
         throw new Error('Method not implemented.');
     }
