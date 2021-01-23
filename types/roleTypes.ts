@@ -1,1 +1,1 @@
-export type roleTypes = "Admin" | "Tutor" | "Child";
+export type roleTypes = "Tuteur" | "Enfant" | "Admin";

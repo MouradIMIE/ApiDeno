@@ -8,9 +8,8 @@ import { getAuthToken, getRefreshToken } from "../helpers/jwt.helpers.ts";
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
-    private _role: roleTypes = "Tutor";
+    private _role: roleTypes = "Tuteur";
     _id:{ $oid: string }|null = null;
-
     firstname: string;
     lastname: string;
     sexe: sexeTypes;
