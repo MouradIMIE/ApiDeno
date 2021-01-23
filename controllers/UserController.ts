@@ -4,14 +4,11 @@ import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
-<<<<<<< HEAD
-import { request } from "https://deno.land/x/opine@1.0.2/src/request.ts";
+import { sendMailInscription } from "../helpers/mails.helpers.ts";
 import { CardModel } from "../Models/CardModel.ts";
 import CardException from "../exceptions/CardException.ts";
-=======
-import { sendMailInscription } from "../helpers/mails.helpers.ts";
->>>>>>> d278d396264503fd891cd105a139d43995190824
-
+import CardInterface from "../interfaces/CardInterace.ts";
+import { compareCard } from "../helpers/card.helpers.ts";
 
 export class UserController {
 
@@ -192,6 +189,12 @@ export class UserController {
                 _id : payload._id
             })
 
+          /*  
+            const used = await CardModel.CardDB.findOne({
+            cartNumber: cartNumber
+            });
+
+            if(used)throw new Error ("La carte existe déjà");*/
             if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
 
             const card = new CardModel(holderName , cartNumber, month , year, ccv);

@@ -13,9 +13,9 @@ export default class CardException extends Error {
         return (reg.test(cartNumber.trim()))
     }
     public static isValidMonth(month: string): boolean {
-        return month.length === this.MonthSize;
+        return month.length <= this.MonthSize;
     }
     public static isValidYear(year: string): boolean {
-        return year.length === this.YearSize;
+        return year.length <= this.YearSize;
     }
 }

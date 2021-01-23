@@ -14,6 +14,7 @@ export class CardModel extends CardDatabase implements CardInterface{
     year: string;
     ccv: string;
     default: boolean;
+    static CardDB: any;
 
     constructor(holderName: string, cartNumber : string, month : string , year : string, ccv: string){
         super();
@@ -29,7 +30,7 @@ export class CardModel extends CardDatabase implements CardInterface{
     }
     async insert(): Promise<void> {
         const used = await this.CardDB.findOne({
-            cartNumber: compareCard( this.cartNumber,await hash(this.cartNumber))
+            _id : this._id
         });
         if(used)throw new Error ("La carte existe déjà");
         this.cartNumber = await hash(this.cartNumber);
