@@ -9,7 +9,7 @@ route.post('/login', UserController.login);
 route.post('/register', UserController.register);
 route.post('/subscription', UserController.subscription);
 route.put('/user',AuthMiddlewares,UserController.editUser);
-route.delete('/user/off', UserController.logout);
+route.delete('/user/off',AuthMiddlewares,UserController.logout);
 route.post('/user/child', UserController.createChild);
 route.get('/user/childs', UserController.getChilds);
 route.delete('/user/child', UserController.deleteChild);

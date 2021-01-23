@@ -234,7 +234,30 @@ export class UserController {
     }
     
     static logout = async(req: Request, res: Response) => {
-    
+        try{
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+            if(user){
+            user.token = "";
+            user.refreshToken = "";
+            await UserModels.userdb.updateOne({_id : user._id}, user);
+            }
+            if(user){
+                res.status = 200;
+                return res.json({ error: false, message: "L'utilisateur a été déconnecté avec succès" });
+            }
+            
+            
+        }catch(error){
+            if(error.message === "Votre token n'est pas correct" ){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+
+        }
     }
      
     static userdb: any;
