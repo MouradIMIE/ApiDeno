@@ -8,8 +8,9 @@ import { getAuthToken, getRefreshToken } from "../helpers/jwt.helpers.ts";
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
-    private _role: roleTypes = "Tuteur";
-    _id:{ $oid: string }|null = null;
+    private _role: roleTypes;
+    _id:string|{ $oid: string }|null|undefined;
+    parent_id:string|{$oid:string}|null|undefined;
     firstname: string;
     lastname: string;
     sexe: sexeTypes;
@@ -23,16 +24,16 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     attempt: number;
     userdb: any;
     static userdb = db.collection <UserInterfaces> ("users");
-
     token: string;
     refreshToken: string;
 
-    constructor(nom: string, prenom: string, sexe: sexeTypes, email: string, password: string, birthDate: Date) {
+    constructor(nom: string, prenom: string, sexe: sexeTypes,role :roleTypes, email: string, password: string, birthDate: Date) {
         super();
-        
+
         this.firstname = prenom;
         this.lastname = nom;
         this.sexe = sexe;
+        this._role = role
         this.email = email;
         this.password = password;
         this.birthDate = new Date(birthDate);
@@ -43,7 +44,9 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.subscription = 0;
         this.token = '';
         this.refreshToken = '';
-
+        if(this._role === 'Enfant') {
+            this.parent_id = ''
+        }
     }
 
     get id(): null | string | undefined | {$oid: string}  {
@@ -66,9 +69,9 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         const used = await this.userdb.findOne({
             email: this.email
         });
-        if(used)throw new Error ("Un compte utilisant cette adresse mail est déjà enregistré");
+        if(used) throw new Error ("Un compte utilisant cette adresse mail est déjà enregistré");
         this.password = await hash(this.password);
-        this._id = await this.userdb.insertOne({
+        const insert = {
             role: this._role,
             firstname: this.firstname,
             lastname: this.lastname,
@@ -83,7 +86,13 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             subscription: this.subscription,
             token: this.token,
             refreshToken: this.refreshToken,
-        });
+        };
+        if(this.parent_id){
+            const childNumber = await this.userdb.count({parent_id : this.parent_id});
+            if(childNumber === 3) throw new Error ("Vous avez dépassé le cota de trois enfants");
+            await Object.assign(insert,{parent_id:this.parent_id});
+        }
+        this._id = await this.userdb.insertOne(insert);
     }
 
     static async login(email :string, password:string): Promise < UserInterfaces >{
