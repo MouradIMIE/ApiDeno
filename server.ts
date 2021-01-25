@@ -9,13 +9,14 @@ app.use(json());
 app.use(urlencoded());
 
 app.get('/', (req: Request, res: Response)=> {
-    res.sendFile( __dirname.substring(1) + '/public/index.html');
+    try {   
+        res.sendFile( __dirname.substring(1) + '/public/index.html');
+    } catch (error) {
+        res.sendFile(__dirname.substring(1) + '/public/error.html');
+    }
+    
 });
 
-
-// app.get('*', (req: Request, res: Response)=> {
-//     res.sendFile(__dirname.substring(1) + '/public/error.html');
-// });
 
 app.use(Route);
 app.listen({port: 8080});
