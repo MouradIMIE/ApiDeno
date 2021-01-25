@@ -13,9 +13,9 @@ app.get('/', (req: Request, res: Response)=> {
 });
 
 
-app.get('*', (req: Request, res: Response)=> {
-    res.sendFile(__dirname.substring(1) + '/public/error.html');
-});
+// app.get('*', (req: Request, res: Response)=> {
+//     res.sendFile(__dirname.substring(1) + '/public/error.html');
+// });
 
 app.use(Route);
 app.listen({port: 8080});

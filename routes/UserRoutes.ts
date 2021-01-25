@@ -12,7 +12,7 @@ route.post('/subscription', UserController.subscription);
 route.put('/user',AuthMiddlewares,UserMiddlewares,UserController.editUser);
 route.delete('/user/off',AuthMiddlewares,UserController.logout);
 route.post('/user/child',AuthMiddlewares,UserMiddlewares, UserController.createChild);
-route.get('/user/child', UserController.getChilds);
+route.get('/user/child',AuthMiddlewares,UserController.getChilds);
 route.delete('/user/child', UserController.deleteChild);
 route.put('/user/cart', UserController.addCart);
 route.delete('/user', UserController.deleteUser);

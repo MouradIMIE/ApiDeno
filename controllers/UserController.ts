@@ -4,6 +4,7 @@ import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
+import { Bson } from "https://deno.land/x/mongo@v0.21.0/mod.ts";
 import { sendMailAddChild, sendMailInscription } from "../helpers/mails.helpers.ts";
 
 
@@ -219,7 +220,45 @@ export class UserController {
     }
     
     static getChilds = async(req: Request, res: Response) => {
-        
+        try { 
+            
+            const getReqUser: any = req;
+            const payload: any = getReqUser.user;
+            const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : new Bson.ObjectId(payload.id)
+            })
+
+            if(parent){
+                if(parent.role !== "Tuteur") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                const Childs = await UserModels.userdb.find({parent_id: parent._id},{}).toArray();
+                Childs.map((user: any) =>{
+                    Object.assign(user, {_id: user._id});
+                    delete user._id 
+                    delete user.role
+                    delete user.parent_id
+                    delete user.email
+                    delete user.password
+                    delete user.refreshToken
+                    delete user.token
+                    delete user.lastLogin
+                    delete user.attempt
+                })
+                res.status = 200
+                return res.json({
+                    error : false,
+                    users:Childs
+                })
+            }
+        } catch (error) {
+            if(error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
     }
     
     static deleteChild = async(req: Request, res: Response) => {
