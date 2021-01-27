@@ -262,10 +262,54 @@ export class UserController {
     }
     
     static deleteChild = async(req: Request, res: Response) => {
+        try{
+            const getReqUser: any = req;
+            const payload: UserInterfaces = getReqUser.user;
+            const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            });
+            
+            if(parent){
+
+                if(parent.role !== 'Tuteur') throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                const {id_child} = req.body;
+                
+                if(id_child.length !== 24) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                
+                const child : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                    _id : new Bson.ObjectId(id_child)
+                });
+
+                if(!child) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                
+                if(child){
+                    const validateMatching = (child.parent_id?.toString() !== parent._id?.toString());
+                    if(validateMatching) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                    await UserModels.userdb.delete({_id: child._id})
+                }
+                res.status = 200
+                return res.json({
+                    error : false,
+                    message:"L'utilisateur a été supprimée avec succès"
+                })
+            }
+        }
+        catch (error){
+            if(error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Vous ne pouvez pas supprimer cet enfant"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
 
     }
-
-    
     static addCart = async(req: Request, res: Response) => {
         
     }
