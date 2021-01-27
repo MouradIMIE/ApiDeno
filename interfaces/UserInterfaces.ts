@@ -5,8 +5,8 @@ import { userUpdateType } from "../types/userUpdateType.ts";
 export default interface UserInterfaces {
      //Interface utilisateur renseignement de tout les champs pouvant être pris en compte
 
-    _id?: { $oid: string }|null|string;
-
+    _id?: string|{ $oid: string }|null|undefined;
+    parent_id:string|{$oid:string}|null|undefined;
     firstname: string;
     lastname: string;
     sexe:sexeTypes;
