@@ -49,22 +49,6 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         }
     }
 
-    get id(): null | string | undefined | {$oid: string}  {
-        return (this._id === null) ? null : this._id;
-    }
-
-    get role():roleTypes{
-        return this._role;
-    }
-    get subcription():number{
-        return this.subscription;
-    }
-    
-    setRole(role: roleTypes): void {
-        this._role = role;
-        this.update({role: role});
-    }
-
     async insert(): Promise<void> {
         const used = await this.userdb.findOne({
             email: this.email
