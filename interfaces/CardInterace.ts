@@ -1,10 +1,10 @@
 export default interface CardInterface{
     _id: { $oid: string } | null | string;
     holderName: string;
-    cartNumber : string;
-    month : string;
-    year: string;
-    ccv: string;
+    cartNumber : number;
+    month : number;
+    year: number;
+    ccv: number;
     default: boolean;
 
     insert(): Promise<void>;

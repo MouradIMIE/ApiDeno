@@ -179,25 +179,22 @@ export class UserController {
         try{
             const{holderName , cartNumber, month , year, ccv } = req.body;
 
-            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
-            if(!CardException.isValidMonth(month) && month >= 31 && year <= 1) throw new Error ("Une ou plusieurs données sont erronées");
-            if(!CardException.isValidYear(year) && year >= 99 && year <= 21) throw new Error ("Une ou plusieurs données sont erronées");
-
+            if( holderName === "" || cartNumber === "" || month === "" || year === ""  || ccv === "" ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
+            
             const getReqUser: any = req;
             const payload : UserInterfaces = getReqUser.user;
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
 
-          /*  
-            const used = await CardModel.CardDB.findOne({
-            cartNumber: cartNumber
-            });
-
-            if(used)throw new Error ("La carte existe déjà");*/
             if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
 
-            const card = new CardModel(holderName , cartNumber, month , year, ccv);
+            const card = new CardModel(holderName , parseInt(cartNumber), parseInt(month) , parseInt(year), parseInt(ccv));
+            if(card === null ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
+            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
+            if(!CardException.isValidMonth(month) && month > 12) throw new Error ("Une ou plusieurs données sont erronées");
+            if(!CardException.isValidYear(year) && year >= 21 ) throw new Error ("Une ou plusieurs données sont erronées");
+            if(!CardException.isValidCcv(ccv)) throw new Error ("Une ou plusieurs données sont erronées");
             await card.insert();
             if(card){
                 res.status = 200;
@@ -225,7 +222,7 @@ export class UserController {
                 res.status = 403;
                 res.json({error: true, message: error.message});
             }
-            if (error.message === 'Une ou plusieurs données sont erronées'){ // a faire
+            if (error.message === 'Une ou plusieurs données sont erronées'){ 
                 res.status = 409;
                 res.json({error: true, message: error.message});
             }

@@ -9,14 +9,14 @@ export class CardModel extends CardDatabase implements CardInterface{
     _id: { $oid: string } | null = null;
 
     holderName: string;
-    cartNumber: string;
-    month: string;
-    year: string;
-    ccv: string;
+    cartNumber: number;
+    month: number;
+    year: number;
+    ccv: number;
     default: boolean;
     static CardDB: any;
 
-    constructor(holderName: string, cartNumber : string, month : string , year : string, ccv: string){
+    constructor(holderName: string, cartNumber : number, month : number , year : number, ccv: number){
         super();
         this.holderName = holderName;
         this.cartNumber = cartNumber;
@@ -29,11 +29,10 @@ export class CardModel extends CardDatabase implements CardInterface{
         return (this._id === null) ? null : this._id;
     }
     async insert(): Promise<void> {
-        const used = await this.CardDB.findOne({
-            _id : this._id
+        const verifyCard : CardInterface  = await this.CardDB.findOne({
+            cartNumber : this.cartNumber
         });
-        if(used)throw new Error ("La carte existe déjà");
-        this.cartNumber = await hash(this.cartNumber);
+        if(verifyCard)throw new Error ("La carte existe déjà");
         this._id = await this.CardDB.insertOne({
             holderName: this.holderName, 
             cartNumber: this.cartNumber,
