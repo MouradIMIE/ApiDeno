@@ -4,11 +4,13 @@ import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
-import { sendMailInscription } from "../helpers/mails.helpers.ts";
 import { CardModel } from "../Models/CardModel.ts";
 import CardException from "../exceptions/CardException.ts";
 import CardInterface from "../interfaces/CardInterace.ts";
 import { compareCard } from "../helpers/card.helpers.ts";
+import { Bson } from "https://deno.land/x/mongo@v0.21.0/mod.ts";
+import { sendMailAddChild, sendMailInscription } from "../helpers/mails.helpers.ts";
+
 
 export class UserController {
 
@@ -68,7 +70,7 @@ export class UserController {
             if(!EmailException.checkEmail(email)||!PasswordException.isValidPassword(password)) throw new Error('Une ou plusieurs données sont erronées');
             if (!DateException.checkDate(birthDate)) throw new DateException('Une ou plusieurs données sont erronées');
 
-            const user = new UserModels(firstname,lastname,sexe,email,password,birthDate);
+            const user = new UserModels(firstname,lastname,sexe,'Tuteur',email,password,birthDate);
             await user.insert();
             await sendMailInscription(user.email);
             
@@ -118,10 +120,7 @@ export class UserController {
     
     static editUser = async(req: Request, res: Response) => {
         try{
-            const {firstname,lastname,email,birthDate,sexe} = req.body;
-            if (!EmailException.checkEmail(email)) throw new EmailException('Une ou plusieurs données sont erronées');
-            if (!DateException.checkDate(birthDate)) throw new DateException('Une ou plusieurs données sont erronées');
-            if (sexe!== 'Male' && sexe !=='Female') throw new Error('Une ou plusieurs données sont erronées'); 
+            const {firstname,lastname,birthDate,sexe} = req.body;
 
             const getReqUser: any = req;
             const payload : UserInterfaces = getReqUser.user;
@@ -130,12 +129,10 @@ export class UserController {
             })
 
             if(user){
-                user.firstname = firstname;
-                user.lastname = lastname;
-                user.email = email;
-                user.birthDate = birthDate;
-                user.sexe = sexe;
-                user.updatedAt = new Date();
+                if (firstname) user.firstname = firstname;
+                if (lastname) user.lastname = lastname;
+                if (birthDate) user.birthDate = birthDate;
+                if (sexe) user.sexe = sexe;
                 await UserModels.userdb.updateOne({_id: user._id}, user);
             }
             if(user)
@@ -163,18 +160,160 @@ export class UserController {
 
     
     static createChild = async(req: Request, res: Response) => {
-        
+        try{
+            const getReqUser: any = req;
+            const payload: UserInterfaces = getReqUser.user;
+            const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+            if(parent){
+
+                if(parent.role !== 'Tuteur') throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+
+                const {firstname,lastname,email,password,birthDate,sexe} = req.body;
+                
+                const child = new UserModels(firstname,lastname,sexe,'Enfant',email,password,birthDate);
+                child.parent_id = parent._id;
+                await child.insert();
+
+                await sendMailAddChild(parent.email)
+                res.status = 200
+                return res.json({
+                    error : false,
+                    message : "Votre enfant a bien été créé avec succès",
+                    child:{
+                        firstname: child.firstname,
+                        lastname: child.lastname,
+                        email: child.email,
+                        sexe: child.sexe,
+                        role: child.role,
+                        birthDate: child.birthDate,
+                        createdAt: child.createdAt,
+                        updatedAt: child.updatedAt,
+                        subscription: child.subscription,
+                    }
+                })
+            }
+        }
+        catch(error){
+            if(error.message === "Une ou plusieurs données obligatoire sont manquantes"){
+                res.status = 400;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === 'Une ou plusieurs données sont erronées'){
+                res.status = 409;
+                res.json({error: true, message: error.message});
+            }
+            if(error.message === "Un compte utilisant cette adresse mail est déjà enregistré"){
+                res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Vous avez dépassé le cota de trois enfants"){
+                res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+        }
     }
     
     static getChilds = async(req: Request, res: Response) => {
-        
+        try { 
+            
+            const getReqUser: any = req;
+            const payload: any = getReqUser.user;
+            const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : new Bson.ObjectId(payload.id)
+            })
+
+            if(parent){
+                if(parent.role !== "Tuteur") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                const Childs = await UserModels.userdb.find({parent_id: parent._id},{}).toArray();
+                Childs.map((user: any) =>{
+                    Object.assign(user, {_id: user._id});
+                    delete user._id 
+                    delete user.role
+                    delete user.parent_id
+                    delete user.email
+                    delete user.password
+                    delete user.refreshToken
+                    delete user.token
+                    delete user.lastLogin
+                    delete user.attempt
+                })
+                res.status = 200
+                return res.json({
+                    error : false,
+                    users:Childs
+                })
+            }
+        } catch (error) {
+            if(error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
     }
     
     static deleteChild = async(req: Request, res: Response) => {
+        try{
+            const getReqUser: any = req;
+            const payload: UserInterfaces = getReqUser.user;
+            const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            });
+            
+            if(parent){
+
+                if(parent.role !== 'Tuteur') throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                const {id_child} = req.body;
+                
+                if(id_child.length !== 24) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                
+                const child : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                    _id : new Bson.ObjectId(id_child)
+                });
+
+                if(!child) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                
+                if(child){
+                    const validateMatching = (child.parent_id?.toString() !== parent._id?.toString());
+                    if(validateMatching) throw new Error ("Vous ne pouvez pas supprimer cet enfant");
+                    await UserModels.userdb.delete({_id: child._id})
+                }
+                res.status = 200
+                return res.json({
+                    error : false,
+                    message:"L'utilisateur a été supprimée avec succès"
+                })
+            }
+        }
+        catch (error){
+            if(error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Vous ne pouvez pas supprimer cet enfant"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if(error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
 
     }
-
-    
     static addCart = async(req: Request, res: Response) => {
         try{
             const{holderName , cartNumber, month , year, ccv } = req.body;
@@ -233,19 +372,17 @@ export class UserController {
     static logout = async(req: Request, res: Response) => {
         try{
             const getReqUser: any = req;
-            const payload : UserInterfaces = getReqUser.user;
+            const payload : any = getReqUser.user;
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
             if(user){
-            user.token = "";
-            user.refreshToken = "";
-            await UserModels.userdb.updateOne({_id : user._id}, user);
+                user.token = "";
+                user.refreshToken = "";
+                await UserModels.userdb.updateOne({_id : user._id}, user);
             }
-            if(user){
-                res.status = 200;
-                return res.json({ error: false, message: "L'utilisateur a été déconnecté avec succès" });
-            }
+            res.status = 200;
+            return res.json({ error: false, message: "L'utilisateur a été déconnecté avec succès" });
             
             
         }catch(error){

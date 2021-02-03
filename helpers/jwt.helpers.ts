@@ -16,9 +16,7 @@ const header: any = {
 const getAuthToken = async (user: any) => {
     const payload: any = {
         iss: "deno-imie-api",
-        id: user._id, // ObjectId
-        email: user.email,
-        roles: user.role,
+        id: user._id, 
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_ACCESS_TOKEN_EXP)),
     };
 
