@@ -326,7 +326,7 @@ export class UserController {
                 _id : payload._id
             })
 
-            if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+            if(user?.role ===  "Enfant") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
 
             const card = new CardModel(holderName , parseInt(cartNumber), parseInt(month) , parseInt(year), parseInt(ccv));
             if(card === null ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");

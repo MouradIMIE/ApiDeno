@@ -26,6 +26,6 @@ export default interface UserInterfaces {
   /*fullName(): string;
     getEmail(): string;*/
     insert(): Promise<void> ;
-    update(update: userUpdateType): Promise < any > ;
+    // update(update: userUpdateType): Promise < any > ;
     delete(): Promise < any > ;
 }
