@@ -8,7 +8,7 @@ import { getAuthToken, getRefreshToken } from "../helpers/jwt.helpers.ts";
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
-    private _role: roleTypes;
+    role: roleTypes;
     _id:string|{ $oid: string }|null|undefined;
     parent_id:string|{$oid:string}|null|undefined;
     firstname: string;
@@ -33,7 +33,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.firstname = prenom;
         this.lastname = nom;
         this.sexe = sexe;
-        this._role = role
+        this.role = role
         this.email = email;
         this.password = password;
         this.birthDate = new Date(birthDate);
@@ -44,7 +44,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.subscription = 0;
         this.token = '';
         this.refreshToken = '';
-        if(this._role === 'Enfant') {
+        if(this.role === 'Enfant') {
             this.parent_id = ''
         }
     }
@@ -56,7 +56,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         if(used) throw new Error ("Un compte utilisant cette adresse mail est déjà enregistré");
         this.password = await hash(this.password);
         const insert = {
-            role: this._role,
+            role: this.role,
             firstname: this.firstname,
             lastname: this.lastname,
             sexe: this.sexe,
