@@ -11,10 +11,10 @@ route.post('/register',UserMiddlewares, UserController.register);
 route.post('/subscription', UserController.subscription);
 route.put('/user',AuthMiddlewares,UserMiddlewares,UserController.editUser);
 route.delete('/user/off',AuthMiddlewares,UserController.logout);
+route.put('/user/cart',AuthMiddlewares, UserController.addCart);
 route.post('/user/child',AuthMiddlewares,UserMiddlewares, UserController.createChild);
 route.get('/user/child',AuthMiddlewares,UserController.getChilds);
 route.delete('/user/child',AuthMiddlewares, UserController.deleteChild);
-route.put('/user/cart', UserController.addCart);
 route.delete('/user', UserController.deleteUser);
 
 export { route as UserRoutes };

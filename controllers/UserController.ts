@@ -4,6 +4,10 @@ import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
+import { CardModel } from "../Models/CardModel.ts";
+import CardException from "../exceptions/CardException.ts";
+import CardInterface from "../interfaces/CardInterace.ts";
+import { compareCard } from "../helpers/card.helpers.ts";
 import { Bson } from "https://deno.land/x/mongo@v0.21.0/mod.ts";
 import { sendMailAddChild, sendMailInscription } from "../helpers/mails.helpers.ts";
 
@@ -311,6 +315,57 @@ export class UserController {
 
     }
     static addCart = async(req: Request, res: Response) => {
+        try{
+            const{holderName , cartNumber, month , year, ccv } = req.body;
+
+            if( holderName === "" || cartNumber === "" || month === "" || year === ""  || ccv === "" ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
+            
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+
+            if(user?.role ===  "Child") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+
+            const card = new CardModel(holderName , parseInt(cartNumber), parseInt(month) , parseInt(year), parseInt(ccv));
+            if(card === null ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
+            if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
+            if(!CardException.isValidMonth(month) && month > 12) throw new Error ("Une ou plusieurs données sont erronées");
+            if(!CardException.isValidYear(year) && year >= 21 ) throw new Error ("Une ou plusieurs données sont erronées");
+            if(!CardException.isValidCcv(ccv)) throw new Error ("Une ou plusieurs données sont erronées");
+            await card.insert();
+            if(card){
+                res.status = 200;
+                res.json({ error: false, message: "Vos données ont été mises à jour" });
+            }
+
+        }catch(error){
+            if (error.message === "Votre token n'est pas correct"){ 
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === 'Informations bancaire incorrectes'){
+                res.status = 402;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === "La carte existe déjà"){
+                res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message ===  "Veuillez compléter votre profil avec une carte de crédit"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){ 
+                res.status = 403;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === 'Une ou plusieurs données sont erronées'){ 
+                res.status = 409;
+                res.json({error: true, message: error.message});
+            }
+        }
         
     }
     
