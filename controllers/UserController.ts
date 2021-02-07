@@ -161,15 +161,17 @@ export class UserController {
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             }); 
-                if(user){
-                    await UserModels.userdb.delete({_id: user._id})
-                }
-                res.status = 200
-                return res.json({
-                    error : false,
-                    message:"Votre compte et le compte de vos enfants ont été supprimés avec succès"
-                })
+            if(user){
+                await UserModels.userdb.delete({parent_id: user._id});
+                await UserModels.userdb.delete({_id: user._id});
             }
+            
+            res.status = 200
+            return res.json({
+                error : false,
+                message:"Votre compte et le compte de vos enfants ont été supprimés avec succès"
+            })
+        }
         catch (error){
             if(error.message === "Votre token n'est pas correct"){
                 res.status = 401;
