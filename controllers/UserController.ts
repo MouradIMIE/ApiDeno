@@ -155,10 +155,32 @@ export class UserController {
     }
     
     static deleteUser = async(req: Request, res: Response) => {
+        try{
+            const getReqUser: any = req;
+            const payload: UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            }); 
+            if(user){
+                await UserModels.userdb.delete({parent_id: user._id});
+                await UserModels.userdb.delete({_id: user._id});
+            }
+            
+            res.status = 200
+            return res.json({
+                error : false,
+                message:"Votre compte et le compte de vos enfants ont été supprimés avec succès"
+            })
+        }
+        catch (error){
+            if(error.message === "Votre token n'est pas correct"){
+                res.status = 401;
+                res.json({error: true, message : error.message});
+            }
+        }
 
     }
 
-    
     static createChild = async(req: Request, res: Response) => {
         try{
             const getReqUser: any = req;
