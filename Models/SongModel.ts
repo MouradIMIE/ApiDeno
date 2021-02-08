@@ -1,13 +1,12 @@
-import SongDatabase from "../database/SongDatabase.ts";
-import { db } from "../database/database.ts";
+import {SongDatabase} from "../database/SongDatabase.ts";
 import SongInterfaces from "../interfaces/SongInterface.ts";
-import { Bson } from "https://deno.land/x/mongo@v0.20.1/mod.ts";
 
 export class SongModel extends SongDatabase implements SongInterfaces {
-  private songdb: any;
-  private static songdb = db.collection<SongInterfaces>("songs");
+  //private songdb: any;
+ // private static songdb = db.collection<SongInterfaces>("songs");
 
   _id?: { $oid: string } | string | null;
+  idSong: number;
   name: string;
   cover: string;
   url: string;
@@ -15,9 +14,12 @@ export class SongModel extends SongDatabase implements SongInterfaces {
   time: string;
   createdAt: Date;
   updateAt: Date;
+  static songdb: any;
+  
 
   constructor(name:string,cover:string,url:string,type:string,time:string){
     super();
+    this.idSong = 0
     this.name = name;
     this.cover = cover;
     this.url = url;
@@ -26,13 +28,17 @@ export class SongModel extends SongDatabase implements SongInterfaces {
     this.createdAt = new Date();
     this.updateAt = new Date();
   }
-
+  IDSong(idSong: number){
+    idSong + 1 ;
+    return idSong;
+  }
   async insert() : Promise <void>{
       this._id = await this.songdb.insertOne({
+        idSong: this.IDSong(this.idSong),
         name: this.name,
         cover : this.cover,
         url : this.url,
-        ype : this.type,
+        type : this.type,
         time : this.time,
         createdAt : this.createdAt,
         updateAt : this.updateAt,
