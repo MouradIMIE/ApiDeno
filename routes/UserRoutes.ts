@@ -15,6 +15,6 @@ route.put('/user/cart',AuthMiddlewares, UserController.addCart);
 route.post('/user/child',AuthMiddlewares,UserMiddlewares, UserController.createChild);
 route.get('/user/child',AuthMiddlewares,UserController.getChilds);
 route.delete('/user/child',AuthMiddlewares, UserController.deleteChild);
-route.delete('/user', UserController.deleteUser);
+route.delete('/user',AuthMiddlewares, UserController.deleteUser);
 
 export { route as UserRoutes };

@@ -114,7 +114,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         return user.token;
     }
 
-    delete(): Promise < any > {
-        throw new Error('Method not implemented.');
+    async delete(): Promise < void > {
+        await this.userdb.deleteOne({ _id: this._id });
     }
 }
