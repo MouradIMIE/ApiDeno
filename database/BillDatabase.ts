@@ -6,6 +6,6 @@ export class BillDatabase{
     BillDB : any;
 
     constructor(){
-        this.BillDB = db.collection<BillInterface>("bills");
+        this.BillDB = db.collection<BillInterface>("Payment");
     }
 }
