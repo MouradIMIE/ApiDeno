@@ -1,3 +1,4 @@
+import { db } from "../database/database.ts";
 import {SongDatabase} from "../database/SongDatabase.ts";
 import SongInterfaces from "../interfaces/SongInterface.ts";
 
