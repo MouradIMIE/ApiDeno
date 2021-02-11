@@ -6,14 +6,7 @@ const middleware: Application = opine();
 middleware.use((req : Request, res : Response, next: NextFunction)=>{
     try{
         const {name,cover,url,type,time} = req.body;
-        if(req.method === 'PUT'){
-            if( name.length < 2 || name.length > 50 ) throw new Error("Une ou plusieurs données sont erronées");
-            if( cover.length < 15 || cover.length > 255 ) throw new Error("Une ou plusieurs données sont erronées");
-            if( url.length < 10 || url.length > 200 ) throw new Error("Une ou plusieurs données sont erronées");
-            if( type.length < 5 || url.length > 50 ) throw new Error("Une ou plusieurs données sont erronées")
-        }
-        else{
-            if (!name || !cover || !url || !type || !time ) throw new Error ('Une ou plusieurs données obligatoire sont manquantes');
+        if(req.method === 'POST'){
             if( name.length < 2 || name.length > 50 ) throw new Error("Une ou plusieurs données sont erronées");
             if( cover.length < 15 || cover.length > 255 ) throw new Error("Une ou plusieurs données sont erronées");
             if( url.length < 10 || url.length > 200 ) throw new Error("Une ou plusieurs données sont erronées");

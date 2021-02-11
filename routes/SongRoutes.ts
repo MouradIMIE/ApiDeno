@@ -6,6 +6,7 @@ import { AuthMiddlewares } from "../middlewares/AuthMiddlewares.ts";
 
 const route: Application = opine();
 
+route.post('/', AuthMiddlewares, SongController.createSong);
 route.get('/',AuthMiddlewares, SongController.getSongs);
 route.get('/:id',AuthMiddlewares, SongController.getSong);
 
