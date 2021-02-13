@@ -58,7 +58,7 @@ export class SongController {
     
             if(!Song) throw new Error ("idSong incorrect");
             if(user){
-                if(user.subscription === 0 ) throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                if(user.subscription !== 1 ) throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
                 play(Song.url);
                 res.status = 200
                 return res.json({
@@ -91,6 +91,27 @@ export class SongController {
     }
     
     static getSongs = async(req: Request, res: Response) => {
-
+        try{
+            const getReqUser: any = req;
+            const payload: any = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : new Bson.ObjectID(payload.id)
+            })
+            if(user){
+                if(user.subscription !== 1 ) throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
+                const songs = await SongModel.songdb.find().toArray();
+                res.status = 200;
+                return res.json({
+                    error : false,
+                    songs : songs
+                });
+            }
+        }
+        catch(error){
+            if(error.message === "Votre abonnement ne permet pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+        }
     }
 }
