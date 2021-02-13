@@ -1,10 +1,10 @@
 import  {db}  from './database.ts';
 import SongInterfaces from '../interfaces/SongInterface.ts';
 
-export class UserDatabase{ 
+export class SongDatabase{ 
 
-    userdb: any;
+    songdb: any;
     constructor(){
-      this.userdb = db.collection< SongInterfaces >("Songs");   
+      this.songdb = db.collection< SongInterfaces >("Songs");   
     }
 }

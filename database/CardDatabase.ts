@@ -7,6 +7,6 @@ export class CardDatabase{
     CardDB : any;
 
     constructor(){
-        this.CardDB = db.collection<CardInterface>("creditCards");
+        this.CardDB = db.collection<CardInterface>("Payment");
     }
 }

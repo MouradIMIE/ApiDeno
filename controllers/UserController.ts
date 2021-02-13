@@ -253,7 +253,7 @@ export class UserController {
             const parent : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : new Bson.ObjectId(payload.id)
             })
-
+            
             if(parent){
                 if(parent.role !== "Tuteur") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
                 const Childs = await UserModels.userdb.find({parent_id: parent._id},{}).toArray();
