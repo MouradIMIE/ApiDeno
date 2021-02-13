@@ -1,5 +1,7 @@
 import { opine, Application } from "https://deno.land/x/opine@1.0.2/mod.ts";
 import { Request, Response, NextFunction } from "https://deno.land/x/opine@1.0.2/src/types.ts";
+import SongException from "../exceptions/SongException.ts";
+
 
 const middleware: Application = opine();
 
@@ -10,7 +12,8 @@ middleware.use((req : Request, res : Response, next: NextFunction)=>{
             if( name.length < 2 || name.length > 50 ) throw new Error("Une ou plusieurs données sont erronées");
             if( cover.length < 15 || cover.length > 255 ) throw new Error("Une ou plusieurs données sont erronées");
             if( url.length < 10 || url.length > 200 ) throw new Error("Une ou plusieurs données sont erronées");
-            if( type.length < 5 || url.length > 50 ) throw new Error("Une ou plusieurs données sont erronées")
+            if( type.length < 5 || type.length > 50 ) throw new Error("Une ou plusieurs données sont erronées");
+            if(!SongException.checkTime(time)) throw new Error("Une ou plusieurs données sont erronées");
         }
         next()
     }
@@ -19,11 +22,7 @@ middleware.use((req : Request, res : Response, next: NextFunction)=>{
             res.status = 409;
             res.json({error:true, message: error.message});
         }
-        if(error.message === 'Une ou plusieurs données obligatoire sont manquantes'){
-            res.status = 400;
-            res.json({error:true, message: error.message});
-        }
     }
 })
 
-export {middleware as UserMiddlewares}
+export {middleware as SongMiddlewares}
