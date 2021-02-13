@@ -52,15 +52,14 @@ export class SongController {
                 _id : new Bson.ObjectID(payload.id)
             })
             const id = req.originalUrl.slice(7);
-            console.log(id);
             const Song: SongInterfaces|undefined =  await SongModel.songdb.findOne({
                 idSong:parseInt(id)
             });
-            console.log(Song);
+    
             if(!Song) throw new Error ("idSong incorrect");
             if(user){
                 if(user.subscription === 0 ) throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
-                await play(Song.url);
+                play(Song.url);
                 res.status = 200
                 return res.json({
                 error: false, 
@@ -90,8 +89,7 @@ export class SongController {
             }
         }
     }
-
-
+    
     static getSongs = async(req: Request, res: Response) => {
 
     }

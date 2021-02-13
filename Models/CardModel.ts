@@ -1,4 +1,3 @@
-import {compareCard, hash} from "../helpers/card.helpers.ts"
 import {CardDatabase} from "../database/CardDatabase.ts"
 import CardInterface from "../interfaces/CardInterace.ts";
 
@@ -19,7 +18,7 @@ export class CardModel extends CardDatabase implements CardInterface{
 
     constructor(holderName: string, cartNumber : number, month : number , year : number, ccv: number){
         super();
-        this.idCarte = 1;
+        this.idCarte = 0;
         this.holderName = holderName;
         this.cartNumber = cartNumber;
         this.month = month;
@@ -34,7 +33,8 @@ export class CardModel extends CardDatabase implements CardInterface{
         idCarte = this.idCarte + 1;
     }
     async insert(): Promise<void> {
-        
+        const card : CardInterface | undefined = await this.CardDB.findOne({idCarte: this.idCarte})
+        if(card?.idCarte === this.idCarte) { this.idCarte = this.idCarte +1}
         const verifyCard : CardInterface  = await this.CardDB.findOne({
             cartNumber : this.cartNumber
         });
