@@ -53,7 +53,9 @@ export class SongController {
             })
             const id = req.originalUrl.slice(7);
             console.log(id);
-            const Song: SongInterfaces|undefined =  await SongModel.songdb.findOne({idSong: id});
+            const Song: SongInterfaces|undefined =  await SongModel.songdb.findOne({
+                idSong:parseInt(id)
+            });
             console.log(Song);
             if(!Song) throw new Error ("idSong incorrect");
             if(user){

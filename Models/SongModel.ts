@@ -13,8 +13,8 @@ export class SongModel extends SongDatabase implements SongInterfaces {
   time: string;
   createdAt: Date;
   updateAt: Date;
-  static songdb: any;
-  
+  songdb: any;
+  static songdb = db.collection <SongInterfaces> ("Songs");
 
   constructor(name:string,cover:string,url:string,type:string,time:string){
     super();
