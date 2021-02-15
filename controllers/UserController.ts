@@ -7,7 +7,7 @@ import UserInterfaces from "../interfaces/UserInterfaces.ts";
 import { CardModel } from "../Models/CardModel.ts";
 import CardException from "../exceptions/CardException.ts";
 import { Bson } from "https://deno.land/x/mongo@v0.21.0/mod.ts";
-import { sendMailAddChild, sendMailInscription } from "../helpers/mails.helpers.ts";
+import { sendMailAddChild, sendMailInscription, sendMailDeleteUser } from "../helpers/mails.helpers.ts";
 import { config } from '../config/config.ts';
 import {BillModel} from '../Models/BillModel.ts'
 
@@ -17,7 +17,7 @@ export class UserController {
 
     static login = async(req: Request, res: Response) => {
         try {
-            // Récupération des inputs dans body
+            
             const {email,password} = req.body;
 
             if(!email||!password) throw new Error('Email/password manquants');
@@ -135,6 +135,7 @@ export class UserController {
 
             const methodes = await fetch("https://api.stripe.com/v1/payment_methods", requestOptions)
             const responseMethodes = await methodes.json()
+            console.log(responseMethodes);
 
             var myHeaders : any = new Headers();
             myHeaders.append("Authorization", "Basic "+config.STRIPE_TOKEN_SECRET);
@@ -153,7 +154,7 @@ export class UserController {
 
             const customer : any = await fetch("https://api.stripe.com/v1/customers", requestOptions)
             const responseCustomer = await customer.json()
-  
+            console.log(responseCustomer);
 
             var myHeaders : any = new Headers();
             myHeaders.append("Authorization", "Basic "+config.STRIPE_TOKEN_SECRET);
@@ -176,7 +177,7 @@ export class UserController {
             const sub = await subcription.json()
             
             res.status = 200;
-            res.json({ error: false, "message": sub  })
+            res.json({ error: false, message: sub  })
             
     }
     
@@ -227,6 +228,7 @@ export class UserController {
             if(user){
                 await UserModels.userdb.delete({parent_id: user._id});
                 await UserModels.userdb.delete({_id: user._id});
+                await sendMailDeleteUser(user.email);
             }
             
             res.status = 200

@@ -40,6 +40,44 @@ const sendMailAddChild = async (email: string): Promise<void> => {
 
     await client.close();
 }
+const sendMailDeleteUser = async (email: string): Promise<void> => {
+    const client = new SmtpClient();
+
+    await client.connectTLS({
+        hostname: "smtp.gmail.com",
+        port: 465,
+        username: "deno.api.eedsi@gmail.com",
+        password: config.mailPassword,
+    });
+
+    await client.send({
+        from: "deno.api.eedsi@gmail.com",
+        to: email,
+        subject: "Delete User",
+        content: "Your account has been successfully deleted",
+    });
+
+    await client.close();
+}
+const sendMailSubscription = async (email: string): Promise<void> => {
+    const client = new SmtpClient();
+
+    await client.connectTLS({
+        hostname: "smtp.gmail.com",
+        port: 465,
+        username: "deno.api.eedsi@gmail.com",
+        password: config.mailPassword,
+    });
+
+    await client.send({
+        from: "deno.api.eedsi@gmail.com",
+        to: email,
+        subject: "New Subscription",
+        content: "Thanks for your subscription.",
+    });
+
+    await client.close();
+}
 
 
-export { sendMailInscription, sendMailAddChild };
+export { sendMailInscription, sendMailAddChild, sendMailDeleteUser, sendMailSubscription };
