@@ -12,6 +12,7 @@ export class BillModel extends BillDatabase implements BillInterface{
     source: string;
     createdAt: Date;
     updateAt:Date;
+    static billDB: any;
 
     constructor(date_payment: Date, montant_ht : number,montant_ttc: number, source: string ){
         super();
