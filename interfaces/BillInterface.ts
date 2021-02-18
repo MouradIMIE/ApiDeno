@@ -1,8 +1,8 @@
 export default interface BillInterface{
-    _id: { $oid: string } | null | string;
-    _id_Stripe: { $oid: string } | null | string;
-    
-    date_payment : Date;
+    _id?: { $oid: string } | string | null;
+    user_id: { $oid: string } | string | undefined;
+    id_Stripe:string;
+    date_payment : Date | string;
     montant_ht : number;
     montant_ttc: number;
     source: string;
@@ -10,9 +10,4 @@ export default interface BillInterface{
     updateAt:Date;
 
 
-    // Methods
-    // A modifier au moment de la réalisation de la route de récupération d'une facture
-
-    insert(): Promise<void>;
-    delete(): Promise<any>;
 }

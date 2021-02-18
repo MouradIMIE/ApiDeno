@@ -9,38 +9,39 @@ const {
 } = config;
 
 const header: any = {
-    alg: "HS256",
+    alg: "none",
     typ: "JWT",
 };
 
 const getAuthToken = async (user: any) => {
     const payload: any = {
-        iss: "deno-imie-api",
         id: user._id, 
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_ACCESS_TOKEN_EXP)),
     };
 
-    return await create(header, payload, JWT_TOKEN_SECRET);
+    return (await create(header, payload, JWT_TOKEN_SECRET)).split('.')[1];
 };
 
 const getRefreshToken = async(user: any) => {
     const payload: any = {
-        iss: "deno-imie-api",
         id: user._id,
         exp: getNumericDate(new Date().getTime() + parseInt(JWT_REFRESH_TOKEN_EXP)),
     };
 
-    return await create(header, payload, JWT_TOKEN_SECRET);
+    return (await create(header, payload, JWT_TOKEN_SECRET)).split('.')[1];
 };
 
 const getJwtPayload = async(token: string): Promise < any | null > => {
     try {
+        console.log("--1")
         const jwtObject = await verify(token, JWT_TOKEN_SECRET, header.alg);
         if (jwtObject) {
             return jwtObject;
         }
-    } catch (err) {}
-    return null;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
 };
 
 export { getAuthToken, getRefreshToken, getJwtPayload };

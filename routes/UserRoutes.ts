@@ -8,7 +8,7 @@ const route: Application = opine();
 
 route.post('/login', UserController.login);
 route.post('/register',UserMiddlewares, UserController.register);
-route.post('/subscription', UserController.subscription);
+route.post('/subscription',AuthMiddlewares, UserController.subscription);
 route.put('/user',AuthMiddlewares,UserMiddlewares,UserController.editUser);
 route.delete('/user/off',AuthMiddlewares,UserController.logout);
 route.put('/user/cart',AuthMiddlewares, UserController.addCart);

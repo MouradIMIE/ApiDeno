@@ -11,7 +11,7 @@ const middleware: Application = opine();
 middleware.use(async (req: Request, res: Response , next: NextFunction)=>{
     try{
         const token: string|null|undefined = req.headers.get('authorization')?.replace('Bearer ','');
-        const user: any = await jwt.getJwtPayload((token === undefined || token === null)?'':token);
+        const user: any = (token)? await jwt.getJwtPayload('eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.' + token + '.') : null;
         if(user == null || user == undefined) throw new Error("Votre token n'est pas correct");
         const checkUser : UserInterfaces | undefined = await UserModels.userdb.findOne({
             _id : new Bson.ObjectId(user.id)
