@@ -16,7 +16,7 @@ const header: any = {
 const getAuthToken = async (user: any) => {
     const payload: any = {
         id: user._id, 
-        exp: getNumericDate(new Date().getTime() + parseInt(JWT_ACCESS_TOKEN_EXP)),
+        exp: getNumericDate(new Date().getTime()+ (5 *  parseInt(JWT_ACCESS_TOKEN_EXP))),
     };
 
     return (await create(header, payload, JWT_TOKEN_SECRET)).split('.')[1];
@@ -25,7 +25,7 @@ const getAuthToken = async (user: any) => {
 const getRefreshToken = async(user: any) => {
     const payload: any = {
         id: user._id,
-        exp: getNumericDate(new Date().getTime() + parseInt(JWT_REFRESH_TOKEN_EXP)),
+        exp: getNumericDate(new Date().getTime()+ (5 * parseInt(JWT_REFRESH_TOKEN_EXP))),
     };
 
     return (await create(header, payload, JWT_TOKEN_SECRET)).split('.')[1];
@@ -33,7 +33,6 @@ const getRefreshToken = async(user: any) => {
 
 const getJwtPayload = async(token: string): Promise < any | null > => {
     try {
-        console.log("--1")
         const jwtObject = await verify(token, JWT_TOKEN_SECRET, header.alg);
         if (jwtObject) {
             return jwtObject;

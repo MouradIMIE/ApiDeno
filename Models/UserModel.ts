@@ -38,7 +38,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.role = role
         this.email = email;
         this.password = password;
-        this.birthDate = new Date(birthDate);
+        this.birthDate = birthDate;
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.lastLogin = new Date();
@@ -56,6 +56,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         const used = await this.userdb.findOne({
             email: this.email
         });
+        
         if(used) throw new Error ("Un compte utilisant cette adresse mail est déjà enregistré");
         this.password = await hash(this.password);
         const insert = {
@@ -80,6 +81,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             if(childNumber === 3) throw new Error ("Vous avez dépassé le cota de trois enfants");
             await Object.assign(insert,{parent_id:this.parent_id});
         }
+        
         this._id = await this.userdb.insertOne(insert);
     }
 
@@ -95,7 +97,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             await this.userdb.updateOne({_id:verifyUser._id},verifyUser);
         }
         if(((new Date().getTime() - verifyUser.lastLogin.getTime()) / 60 / 1000) <= 2 && verifyUser.attempt >= 5 )
-           throw new Error ("Trop de tentative sur l'email "+verifyUser.email+  "(5 max) - Veuillez patienter (2min)")
+           throw new Error ("Trop de tentative sur l'email "+verifyUser.email+  " (5 max) - Veuillez patienter (2min)")
 
         const comparePasswords = await comparePass(password,verifyUser.password)
         if (!comparePasswords){

@@ -17,8 +17,8 @@ export default class CardException extends Error {
         const reg = /^2[1-9]$/
         return (reg.test(year.trim()))
     }
-    public static isValidCcv(year: string){
+    public static isValidCcv(cvc: string){
         const reg = /^[0-9]{3}$/
-        return (reg.test(year.trim()))
+        return (reg.test(cvc.trim()))
     }
 }
