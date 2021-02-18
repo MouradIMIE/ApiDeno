@@ -30,7 +30,7 @@ export class SongModel extends SongDatabase implements SongInterfaces {
   
   async insert() : Promise <void>{
     const Song : SongInterfaces | undefined = await this.songdb.findOne({idSong: this.idSong})
-    if(Song?.idSong === this.idSong) { this.idSong = Song.idSong +1}
+    if(Song?.idSong === this.idSong) { this.idSong = this.idSong + 1}
       this._id = await this.songdb.insertOne({
         idSong: this.idSong,
         name: this.name,

@@ -3,4 +3,5 @@ export type cardType = {
     cartNumber: string,
     month: string,
     year: string,
+    default: boolean,
 }

@@ -120,9 +120,9 @@ export class UserController {
             })
             if(user){
                 if(user.role !== 'Tuteur')throw new Error (`Vos droits d'accès ne permettent pas d'accéder à la ressource`);
-                const {id,ccv} = req.body;
-                if(!id || !ccv) throw new Error ('Une ou plusieurs données obligatoire sont manquantes');
-                if(!CardException.isValidCcv(ccv)) throw new Error ('Une ou plusieurs données sont erronées');
+                const {id,cvc} = req.body;
+                if(!id || !cvc) throw new Error ('Une ou plusieurs données obligatoire sont manquantes');
+                if(!CardException.isValidCcv(cvc)) throw new Error ('Une ou plusieurs données sont erronées');
                 if(user.card == []) throw new Error ('Veuillez compléter votre profil avec une carte de crédit');
                 const ExistCard = user.card.filter((card) => card.id === parseInt(id))[0];
                 if(!ExistCard) throw new Error('Veuillez compléter votre profil avec une carte de crédit');
@@ -447,7 +447,7 @@ export class UserController {
                         try{
                             const alreadyExist1 = await UserModels.userdb.findOne({cartNumber: cartNumber})
                             if(!alreadyExist1) user.card.push({id : user.card.length+ 1,cartNumber: cartNumber,
-                            month:month,year:year});
+                            month:month,year:year,default:true});
                             else throw new Error('La carte existe déjà');
                             await UserModels.userdb.updateOne({_id: user._id}, user);
                             res.status = 200
