@@ -4,12 +4,11 @@ import EmailException from "../exceptions/EmailException.ts"
 import PasswordException from "../exceptions/PasswordException.ts";
 import DateException from "../exceptions/DateException.ts";
 import UserInterfaces from "../interfaces/UserInterfaces.ts";
-import { CardModel } from "../Models/CardModel.ts";
 import CardException from "../exceptions/CardException.ts";
-import CardInterface from "../interfaces/CardInterace.ts";
-import { compareCard } from "../helpers/card.helpers.ts";
 import { Bson } from "https://deno.land/x/mongo@v0.21.0/mod.ts";
-import { sendMailAddChild, sendMailInscription } from "../helpers/mails.helpers.ts";
+import { sendMailAddChild, sendMailInscription, sendMailDeleteUser, sendMailSubscription, sendMailReSubscription } from "../helpers/mails.helpers.ts";
+import {BillModel} from '../Models/BillModel.ts'
+import { addCard, addCustomer, payment, AddCustomerCardStripe } from "../helpers/stripes.helpers.ts";
 
 
 export class UserController {
@@ -17,7 +16,7 @@ export class UserController {
 
     static login = async(req: Request, res: Response) => {
         try {
-            // Récupération des inputs dans body
+            
             const {email,password} = req.body;
 
             if(!email||!password) throw new Error('Email/password manquants');
@@ -112,11 +111,102 @@ export class UserController {
 
     }
 
-
     static subscription = async(req: Request, res: Response) => {
-
+        try{
+            const getReqUser: any = req;
+            const payload : UserInterfaces = getReqUser.user;
+            const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
+                _id : payload._id
+            })
+            if(user){
+                if(user.role !== 'Tuteur')throw new Error (`Vos droits d'accès ne permettent pas d'accéder à la ressource`);
+                const {id,ccv} = req.body;
+                if(!id || !ccv) throw new Error ('Une ou plusieurs données obligatoire sont manquantes');
+                if(!CardException.isValidCcv(ccv)) throw new Error ('Une ou plusieurs données sont erronées');
+                if(user.card == []) throw new Error ('Veuillez compléter votre profil avec une carte de crédit');
+                const ExistCard = user.card.filter((card) => card.id === parseInt(id))[0];
+                if(!ExistCard) throw new Error('Veuillez compléter votre profil avec une carte de crédit');
+                
+                addCard(parseInt(ExistCard.cartNumber),parseInt(ExistCard.month),parseInt(ExistCard.year)).then(
+                    (data)=>{
+                        const stripeCard = data.data;
+                        addCustomer(user.email,user.firstname+' '+user.lastname).then(
+                            (data) =>{
+                                const stripeCustomer = data.data;
+                                AddCustomerCardStripe(stripeCustomer.id,stripeCard.id).then(
+                                    async () => {
+                                        const alreadyExist = (await BillModel.getBills(<string>user._id)).length !== 0;
+                                        if (alreadyExist) {
+                                            payment(stripeCustomer.id, 'price_1IMDMUDWgEW6nkIHCLvLF0kb').then(
+                                                async (body) => {
+                                                    await UserModels.Subscription(user,1);
+                                                    await sendMailReSubscription(user.email);
+                                                    const bill = new BillModel(<string>user._id, body?.data.id, new Date(), 8.49, 9.99, 'Stripe');
+                                                    await bill.insert();
+                                                    res.status = 200;
+                                                    return res.json({
+                                                        error: true,
+                                                        message: 'Votre abonnement a bien été mise à jour'
+                                                    });
+                                                },
+                                                () => {res.status = 402;
+                                                    res.json({
+                                                    error: true,
+                                                    message: "Echec du payement de l'offre"
+                                            })}
+                                            );
+                                        }
+                                        else{
+                                            await UserModels.Subscription(user,1);
+                                            setTimeout(()=>{
+                                                payment(stripeCustomer.id,'price_1IMDMUDWgEW6nkIHCLvLF0kb').then(
+                                                    async (body) =>{
+                                                        await UserModels.Subscription(user,1);
+                                                        await sendMailSubscription(user.email);
+                                                        const bill = new BillModel(<string>user._id, body?.data.id, new Date(), 8.49, 9.99, 'Stripe');
+                                                        await bill.insert();
+                                                    },
+                                                    async() => await UserModels.Subscription(user,0),
+                                            )},60000*5 );
+                                            res.status = 200;
+                                            return res.json({
+                                                error: true,
+                                                message: "Votre période d'essai viens d'être activé - 5min"
+                                            });
+                                        }
+                                    },
+                                    () =>{
+                                    res.status = 402;
+                                    return res.json({
+                                        error: true,
+                                        message: "Echec du payement de l'offre"
+                                    });}
+                                );
+                            }
+                        )
+                    }
+                )
+            }
+        }
+        catch(error){
+            if (error.message === 'Une ou plusieurs données obligatoire sont manquantes'){
+                res.status = 400;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === "Une ou plusieurs données sont erronées"){
+                res.status = 409;
+                res.json({error: true, message : error.message});
+            }
+            if (error.message === "Vos droits d'accès ne permettent pas d'accéder à la ressource"){
+                res.status = 403;
+                res.json({error: true, message: error.message});
+            }
+            if (error.message === "Veuillez compléter votre profil avec une carte de crédit"){
+                res.status = 403;
+                res.json({error: true, message : error.message});
+            }
+        }      
     }
-    
     
     static editUser = async(req: Request, res: Response) => {
         try{
@@ -164,6 +254,7 @@ export class UserController {
             if(user){
                 await UserModels.userdb.delete({parent_id: user._id});
                 await UserModels.userdb.delete({_id: user._id});
+                await sendMailDeleteUser(user.email);
             }
             
             res.status = 200
@@ -338,30 +429,54 @@ export class UserController {
     }
     static addCart = async(req: Request, res: Response) => {
         try{
-            const{holderName , cartNumber, month , year, ccv } = req.body;
+            const{cartNumber, month , year } = req.body;
 
-            if( holderName === "" || cartNumber === "" || month === "" || year === ""  || ccv === "" ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
-            
             const getReqUser: any = req;
             const payload : UserInterfaces = getReqUser.user;
             const user : UserInterfaces|undefined = await UserModels.userdb.findOne({
                 _id : payload._id
             })
-
+            if( !cartNumber || !month || !year || !req.body.default === undefined ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
             if(user?.role ===  "Enfant") throw new Error ("Vos droits d'accès ne permettent pas d'accéder à la ressource");
-
-            const card = new CardModel(holderName , parseInt(cartNumber), parseInt(month) , parseInt(year), parseInt(ccv));
-            if(card === null ) throw new Error("Veuillez compléter votre profil avec une carte de crédit");
             if(!CardException.checkCard(cartNumber)) throw new Error ("Informations bancaire incorrectes");
             if(!CardException.isValidMonth(month) && month > 12) throw new Error ("Une ou plusieurs données sont erronées");
-            if(!CardException.isValidYear(year) && year >= 21 ) throw new Error ("Une ou plusieurs données sont erronées");
-            if(!CardException.isValidCcv(ccv)) throw new Error ("Une ou plusieurs données sont erronées");
-            await card.insert();
-            if(card){
-                res.status = 200;
-                res.json({ error: false, message: "Vos données ont été mises à jour" });
+            if(!CardException.isValidYear(year) && year <= 21 ) throw new Error ("Une ou plusieurs données sont erronées");
+            if(user){
+                addCard(parseInt(cartNumber),parseInt(month),parseInt(year)).then(
+                    async ()=>{
+                        try{
+                            const alreadyExist1 = await UserModels.userdb.findOne({cartNumber: cartNumber})
+                            if(!alreadyExist1) user.card.push({id : user.card.length+ 1,cartNumber: cartNumber,
+                            month:month,year:year});
+                            else throw new Error('La carte existe déjà');
+                            await UserModels.userdb.updateOne({_id: user._id}, user);
+                            res.status = 200
+                            return res.json({
+                                error: false,
+                                message: "Vos données ont été mises à jour",
+                            })
+                        }
+                        catch(error){
+                            if(error.message ==="La carte existe déjà"){
+                                res.status = 409;
+                                res.json({error: true, message : error.message});
+                            }
+                        }
+                    },
+                    () =>{
+                        try{
+                            throw new Error('Informations bancaire incorrectes');
+                        }
+                        catch(error){
+                            if(error.message ==="Informations bancaire incorrectes"){
+                                res.status = 402;
+                                res.json({error: true, message : error.message});
+                            }
+                        }
+                    }
+                )
             }
-
+    
         }catch(error){
             if (error.message === "Votre token n'est pas correct"){ 
                 res.status = 401;

@@ -1,6 +1,7 @@
 import { roleTypes } from '../types/roleTypes.ts';
 import { sexeTypes } from '../types/sexeTypes.ts';
 import { userUpdateType } from "../types/userUpdateType.ts";
+import { cardType } from "../types/cardType.ts"
 
 export default interface UserInterfaces {
      //Interface utilisateur renseignement de tout les champs pouvant être pris en compte
@@ -13,6 +14,7 @@ export default interface UserInterfaces {
     email: string;
     password: string;
     birthDate: Date;
+    card: Array<cardType>;
     createdAt: Date;
     updatedAt: Date;
     subscription: number;
@@ -27,5 +29,4 @@ export default interface UserInterfaces {
     getEmail(): string;*/
     insert(): Promise<void> ;
     // update(update: userUpdateType): Promise < any > ;
-    delete(): Promise < any > ;
 }

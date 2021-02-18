@@ -5,6 +5,7 @@ import { comparePass, hash } from '../helpers/password.helpers.ts';
 import { sexeTypes } from '../types/sexeTypes.ts';
 import {db} from '../database/database.ts'
 import { getAuthToken, getRefreshToken } from "../helpers/jwt.helpers.ts";
+import { cardType } from "../types/cardType.ts"
 
 export class UserModels extends UserDatabase implements UserInterfaces {
 
@@ -16,6 +17,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
     sexe: sexeTypes;
     email: string;
     password: string;
+    card : Array<cardType>;
     birthDate: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -42,6 +44,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         this.lastLogin = new Date();
         this.attempt = 0;
         this.subscription = 0;
+        this.card = [];
         this.token = '';
         this.refreshToken = '';
         if(this.role === 'Enfant') {
@@ -60,6 +63,7 @@ export class UserModels extends UserDatabase implements UserInterfaces {
             firstname: this.firstname,
             lastname: this.lastname,
             sexe: this.sexe,
+            card: this.card,
             password:this.password,
             email: this.email,
             birthDate: this.birthDate,
@@ -114,7 +118,12 @@ export class UserModels extends UserDatabase implements UserInterfaces {
         return user.token;
     }
 
-    async delete(): Promise < void > {
-        await this.userdb.deleteOne({ _id: this._id });
+    static async Subscription(user: UserInterfaces, value: 0 | 1): Promise <void> {
+        try {
+            await this.userdb.updateOne({_id: user._id}, { $set:{ subscription: value }});
+            await this.userdb.updateMany({parent_id: user._id}, { $set:{ subscription: value }});
+        } catch (error) {
+            console.log(error);
+        }
     }
 }
